@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- The picture shown when a link to mashlib is shared (og.png, 1200 × 630).
+     node tools/og.mjs renders this page to ../og.png. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Atkinson'; font-weight: 100 900; src: url('atkinson.woff2') format('woff2') }
+  * { box-sizing: border-box; margin: 0 }
+  body { width: 1200px; height: 630px; overflow: hidden; font-family: 'Atkinson', system-ui, sans-serif; color: #fff;
+    background:
+      radial-gradient(900px 520px at 88% 12%, rgba(124, 77, 255, .55), transparent 62%),
+      radial-gradient(700px 500px at 4% 104%, rgba(64, 196, 255, .22), transparent 60%),
+      linear-gradient(135deg, #0b1220 0%, #151d33 55%, #1d1740 100%) }
+  .grid { position: absolute; inset: 0; opacity: .18;
+    background-image: linear-gradient(rgba(255,255,255,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.09) 1px, transparent 1px);
+    background-size: 48px 48px; mask-image: radial-gradient(900px 500px at 70% 40%, #000, transparent 75%) }
+  .left { position: absolute; left: 72px; top: 84px; width: 520px }
+  .brand { display: flex; align-items: center; gap: 22px }
+  .brand img { width: 104px; height: 96px; filter: drop-shadow(0 10px 30px rgba(124, 77, 255, .65)) }
+  .brand b { font-size: 104px; font-weight: 800; letter-spacing: -.035em; line-height: 1 }
+  h1 { margin-top: 44px; font-size: 50px; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; text-wrap: balance }
+  h1 em { font-style: normal; color: #b9a3ff }
+  p { margin-top: 22px; font-size: 27px; line-height: 1.35; color: #c3cde0; max-width: 470px }
+  .tags { position: absolute; left: 72px; bottom: 60px; display: flex; gap: 12px }
+  .tags span { font-size: 20px; font-weight: 600; padding: 8px 18px; border-radius: 999px; background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16); color: #dbe3f3 }
+
+  .win { position: absolute; left: 640px; top: 96px; width: 640px; height: 520px; border-radius: 22px; overflow: hidden;
+    background: #f8f9fb; box-shadow: 0 40px 90px rgba(3, 6, 20, .65), 0 0 0 1px rgba(255,255,255,.14); transform: rotate(-2.200deg) }
+  .bar { height: 68px; background: #1d293d; display: flex; align-items: center; gap: 14px; padding: 0 18px }
+  .bar img { width: 40px; height: 37px }
+  .addr { flex: 1; height: 44px; border-radius: 999px; background: #fff; display: flex; align-items: center; padding: 0 6px 0 16px; gap: 10px; box-shadow: 0 0 0 3px #a48bff }
+  .addr i { width: 18px; height: 18px; border-radius: 50%; border: 2.200px solid #62748e }
+  .addr span { flex: 1; color: #0f172b; font-size: 19px; white-space: nowrap; overflow: hidden }
+  .addr u { text-decoration: none; background: #7c4dff; color: #fff; font-weight: 700; font-size: 16px; padding: 7px 18px; border-radius: 999px }
+  .page { padding: 20px }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 16px }
+  .who { display: flex; align-items: center; gap: 18px }
+  .who .pic { width: 84px; height: 84px; border-radius: 18px; background: linear-gradient(135deg, #b9a3ff, #7c4dff 60%, #40c4ff); flex: none }
+  .who b { display: block; color: #0f172b; font-size: 32px; font-weight: 800; letter-spacing: -.01em }
+  .who small { display: block; margin-top: 4px; color: #45556c; font-size: 20px }
+  .cols { display: grid; grid-template-columns: 1.700fr 1fr; gap: 16px }
+  .card h3 { color: #314158; font-size: 21px; font-weight: 600; margin-bottom: 14px }
+  .line { height: 12px; border-radius: 6px; background: #e2e8f0; margin-bottom: 11px }
+  .line.dark { background: #90a1b9 } .w9 { width: 92% } .w7 { width: 72% } .w5 { width: 52% } .w4 { width: 40% }
+  .dots { display: grid; grid-template-columns: repeat(4, 38px); gap: 12px }
+  .dots i { width: 38px; height: 38px; border-radius: 10px }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="left">
+    <div class="brand"><img src="../emblem.svg" alt=""><b>mashlib</b></div>
+    <h1>The <em>Solid</em> data browser</h1>
+    <p>Paste the address of a pod, a folder or a profile, and look at it.</p>
+  </div>
+  <div class="tags"><span>SolidOS 3.1</span><span>open source</span><span>your data, your pod</span></div>
+
+  <div class="win">
+    <div class="bar">
+      <img src="../emblem.svg" alt="">
+      <div class="addr"><i></i><span>alice.solidcommunity.net/profile/card#me</span><u>Go</u></div>
+    </div>
+    <div class="page">
+      <div class="card who"><div class="pic"></div><div><b>Alice Example</b><small>Researcher · Solid community</small></div></div>
+      <div class="cols">
+        <div>
+          <div class="card"><h3>Bio</h3><div class="line w9"></div><div class="line w7"></div></div>
+          <div class="card"><h3>Resume</h3><div class="line dark w5"></div><div class="line w4"></div><div class="line dark w7" style="margin-top:18px"></div><div class="line w4"></div></div>
+        </div>
+        <div>
+          <div class="card"><h3>Follow me on</h3><div class="dots"><i style="background:#1185fe"></i><i style="background:#0866ff"></i><i style="background:linear-gradient(135deg,#f9ce34,#ee2a7b,#6228d7)"></i><i style="background:#6364ff"></i><i style="background:#ff4500"></i><i style="background:#0f172b"></i><i style="background:#a6ce39"></i><i style="background:#36465d"></i></div></div>
+          <div class="card"><h3>Skills</h3><div class="line w9"></div><div class="line w7"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

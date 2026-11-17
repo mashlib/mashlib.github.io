@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>mashlib · the Solid data browser</title>
+    <meta name="description" content="Look at anything on a Solid pod: profiles, folders, address books, chats. Paste an address and browse it with SolidOS, the data browser of the Solid project."/>
+    <meta name="theme-color" content="#1d293d"/>
+    <link rel="icon" type="image/svg+xml" href="emblem.svg"/>
+    <link rel="canonical" href="https://mashlib.github.io/"/>
+
+    <!-- How a link to this page looks when it is shared -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="mashlib"/>
+    <meta property="og:title" content="mashlib · the Solid data browser"/>
+    <meta property="og:description" content="Paste the address of a pod, a folder or a profile and look at it with SolidOS. Your data, on the web, readable."/>
+    <meta property="og:url" content="https://mashlib.github.io/"/>
+    <meta property="og:image" content="https://mashlib.github.io/og.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta property="og:image:alt" content="mashlib, the Solid data browser: an address bar over a profile page"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="mashlib · the Solid data browser"/>
+    <meta name="twitter:description" content="Paste the address of a pod, a folder or a profile and look at it with SolidOS."/>
+    <meta name="twitter:image" content="https://mashlib.github.io/og.png"/>
+
+    <!-- The data browser with an address bar. Underneath is the official mashlib 3.1.0 bundle
+         (mashlib.min.js, mash.css), exactly as SolidOS publishes it; this page is upstream's
+         browse.html with the address bar in the header beside the account buttons.
+         ?uri=<address> opens one straight away and follows you as you move around. -->
+    <link rel="stylesheet" href="mash.css"/>
+    <script src="mashlib.min.js"></script>
+    <style>
+      :root { --browse-bar-height: 56px }
+      /* mashlib's stylesheet arrives after this one and has rules of its own for body: the id
+         makes these win. The bar's real height is kept in --app-header-height (set by the
+         script below), the variable the data browser's own layout reads. */
+      body#PageBody { margin: 0; padding-top: var(--app-header-height, var(--browse-bar-height)); background: var(--color-background, #f8f9fb) }
+
+      .browse-bar {
+        position: fixed; inset: 0 0 auto 0; z-index: 100;
+        box-sizing: border-box; min-height: var(--browse-bar-height);
+        display: flex; align-items: center; gap: 16px;
+        padding: 8px 20px;
+        background: var(--solid-ui-color-slate-800, #1d293d);
+        color: #fff;
+        font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+      }
+      .browse-home { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; font-weight: 600; font-size: 17px; flex: none }
+      .browse-home solid-ui-solid-emblem { width: 36px; height: 36px; display: inline-flex }
+
+      .browse-address { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; margin: 0 }
+      .browse-field {
+        flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px;
+        height: 40px; padding: 0 6px 0 14px;
+        background: #fff; color: #0f172b;
+        border-radius: 999px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, .16);
+      }
+      .browse-field:focus-within { box-shadow: 0 0 0 3px #a48bff }
+      .browse-field svg { flex: none; width: 18px; height: 18px; color: #62748e }
+      .browse-field input {
+        flex: 1 1 auto; min-width: 0; height: 100%;
+        border: 0; outline: 0; background: transparent; color: inherit;
+        font: inherit; font-size: 15px;
+      }
+      .browse-field input::placeholder { color: #90a1b9 }
+      .browse-go {
+        flex: none; height: 30px; padding: 0 16px;
+        border: 0; border-radius: 999px; cursor: pointer;
+        background: #7c4dff; color: #fff;
+        font: inherit; font-size: 14px; font-weight: 600;
+      }
+      .browse-go:hover, .browse-go:focus-visible { background: #6a3bf0; outline: none }
+      .browse-account { flex: none; display: flex; align-items: center }
+
+      /* The header takes the place of the data browser's own: the outline starts below it. */
+      .browse-main { margin: 0; padding: 0 }
+      .browse-main .outline-view { width: 100% }
+
+      .browse-welcome[hidden] { display: none }
+      .browse-welcome { max-width: 640px; margin: 12vh auto 0; padding: 0 24px; text-align: center; color: #314158; font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif }
+      .browse-welcome h1 { margin: 0 0 8px; font-size: 30px; font-weight: 700; color: #0f172b; text-wrap: balance }
+      .browse-welcome p { margin: 0 0 24px; font-size: 16px; line-height: 1.5 }
+      .browse-examples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none }
+      .browse-examples a {
+        display: inline-block; padding: 8px 16px; border-radius: 999px;
+        background: #fff; color: #5b34d6; text-decoration: none; font-weight: 600; font-size: 14px;
+        box-shadow: 0 0 0 1px #e2e8f0;
+      }
+      .browse-examples a:hover, .browse-examples a:focus-visible { background: #7c4dff; color: #fff; outline: none }
+
+      @media (max-width: 720px) {
+        :root { --browse-bar-height: 104px }
+        .browse-bar { flex-wrap: wrap; gap: 8px 12px; padding: 8px 12px }
+        .browse-home span { display: none }
+        .browse-account { margin-left: auto }
+        .browse-address { order: 3; flex-basis: 100% }
+      }
+    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      const dom = document
+      const outliner = panes.getOutliner(dom)
+      const { store, resource } = SolidLogic.solidLogicSingleton
+      const field = dom.getElementById('uriField')
+      const welcome = dom.getElementById('browseWelcome')
+      const here = () => new URLSearchParams(location.search).get('uri') || ''
+      const ready = panes.initializeProfileHeading(() => here() || location.href) // as upstream: with nothing on show, the page itself
+      let request = 0
+
+      // The page's address says what is on show (?uri=…), one history entry per thing visited.
+      function remember (uri, replace) {
+        const page = new URL(location.href)
+        if (page.searchParams.get('uri') === uri) return
+        page.searchParams.set('uri', uri)
+        history[replace ? 'replaceState' : 'pushState'](history.state, '', page)
+      }
+
+      // Links inside a pane call GotoSubject themselves. Keep the address bar and the page's
+      // address with them, and stop the outliner writing the resource's own URL over ours.
+      const gotoSubject = outliner.GotoSubject.bind(outliner)
+      outliner.GotoSubject = function (subject, expand, pane, solo, referrer, table, options) {
+        if (solo && subject && subject.uri) {
+          field.value = subject.uri
+          remember(subject.uri, false)
+          welcome.hidden = true
+          options = { ...(options && typeof options === 'object' ? options : {}), preserveUrl: true }
+        }
+        return gotoSubject(subject, expand, pane, solo, referrer, table, options)
+      }
+
+      // As upstream's browse.html: load the resource first, so a folder is shown as a folder
+      // and an address the server redirects is shown as where it led.
+      async function show (address, replace) {
+        const mine = ++request
+        const target = new URL(address, location.href)
+        await ready
+        if (mine !== request) return
+
+        const subject = $rdf.sym(target.href)
+        let canonicalSubject = subject
+        let isContainer = false
+        try {
+          const response = await store.fetcher.load(subject.doc())
+          const canonical = new URL(response.url || target.href)
+          canonical.hash = target.hash
+          canonicalSubject = $rdf.sym(canonical.href)
+          isContainer = resource.isContainer(subject.doc()) || resource.isContainer(canonicalSubject.doc())
+          if (isContainer) {
+            if (!canonical.pathname.endsWith('/')) canonical.pathname += '/'
+            target.href = canonical.href
+          }
+        } catch (error) {
+          console.warn('Could not preload the resource; the outline shows why.', error) // access denied, not found
+        }
+        if (mine !== request) return
+
+        field.value = target.href
+        remember(target.href, replace)
+        welcome.hidden = true
+        dom.title = target.href + ' · mashlib'
+
+        const isStorageRoot = resource.isStorageRoot(subject) || resource.isStorageRoot(canonicalSubject)
+        const options = isContainer ? { folderView: isStorageRoot ? 'explorer' : 'container' } : {}
+        outliner.GotoSubject($rdf.sym(target.href), true, undefined, true, undefined, undefined, options)
+        await panes.refreshProfileHeading(true)
+      }
+      const go = (address, replace) => show(address, replace).catch(error => console.error('Failed to browse the resource.', error))
+
+      dom.getElementById('browseForm').addEventListener('submit', (event) => {
+        event.preventDefault()
+        const address = field.value.trim()
+        if (address) go(/^[a-z][a-z0-9+.-]*:/i.test(address) ? address : 'https://' + address, false)
+      })
+      for (const link of dom.querySelectorAll('.browse-examples a')) {
+        link.addEventListener('click', (event) => { event.preventDefault(); go(new URL(link.href).searchParams.get('uri'), false) })
+      }
+
+      // The bar can wrap on a narrow screen: tell the layout how tall it really is.
+      const bar = dom.querySelector('.browse-bar')
+      const measure = () => dom.documentElement.style.setProperty('--app-header-height', bar.getBoundingClientRect().height + 'px')
+      measure()
+      new ResizeObserver(measure).observe(bar)
+
+      // Back and forward: show what the page's address now says. (mashlib's own handler would
+      // show the page itself.)
+      window.onpopstate = null
+      window.addEventListener('popstate', () => {
+        const uri = here()
+        if (uri) go(uri, true)
+        else { field.value = ''; welcome.hidden = false; dom.getElementById('OutlineView').replaceChildren() }
+      })
+
+      // Logging in or out changes what can be seen: show the same thing again.
+      for (const event of ['login', 'sessionRestore', 'logout', 'sessionChange', 'identityReplaced']) {
+        SolidLogic.authn.authSession.events.on(event, () => { if (here()) go(here(), true) })
+      }
+
+      if (here()) go(here(), true)
+      else { welcome.hidden = false; field.focus() }
+    })
+    </script>
+  </head>
+  <body id="PageBody" data-app-shell="browse">
+    <solid-ui-provider>
+      <header class="browse-bar" role="banner">
+        <a class="browse-home" href="./" title="Start again">
+          <solid-ui-solid-emblem></solid-ui-solid-emblem><span>mashlib</span>
+        </a>
+        <form class="browse-address" id="browseForm" role="search">
+          <label class="browse-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.500 14.500 0 0 0 0 20 14.500 14.500 0 0 0 0-20M2 12h20"/></svg>
+            <span class="sr-only">Address of a resource on a Solid pod</span>
+            <input id="uriField" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Address of a pod, a folder, a profile… e.g. you.solidcommunity.net"/>
+            <button class="browse-go" type="submit">Go</button>
+          </label>
+        </form>
+        <div class="browse-account"><solid-ui-account></solid-ui-account></div>
+      </header>
+
+      <main id="MainContent" tabindex="-1" aria-live="polite" class="app-view browse-main">
+        <section class="browse-welcome" id="browseWelcome" hidden>
+          <h1>Browse the Solid web</h1>
+          <p>Paste the address of a pod, a folder, a profile or any document on one, and look at it with SolidOS.</p>
+          <ul class="browse-examples">
+            <li><a href="./?uri=https%3A%2F%2Ftestingsolidos.solidcommunity.net%2Fprofile%2Fcard%23me">A profile</a></li>
+            <li><a href="./?uri=https%3A%2F%2Ftestingsolidos.solidcommunity.net%2Fpublic%2F">A folder</a></li>
+            <li><a href="./?uri=https%3A%2F%2Ftestingsolidos.solidcommunity.net%2Fpublic%2FContacts%2Findex.ttl%23this">An address book</a></li>
+            <li><a href="./?uri=https%3A%2F%2Ftimbl.solidcommunity.net%2Fprofile%2Fcard%23me">Tim Berners-Lee</a></li>
+          </ul>
+        </section>
+        <div id="OutlineView" class="outline-view" aria-label="Resource browser"></div>
+      </main>
+    </solid-ui-provider>
+  </body>
+</html>
